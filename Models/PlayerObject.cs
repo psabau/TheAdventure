@@ -45,4 +45,10 @@ public class PlayerObject : RenderableGameObject
 
         Position = (x, y);
     }
+    
+    public void ApplySpeedBoost(int boost, double duration)
+    {
+        _pixelsPerSecond += boost;
+        Task.Delay(TimeSpan.FromSeconds(duration)).ContinueWith(t => _pixelsPerSecond -= boost);
+    }
 }

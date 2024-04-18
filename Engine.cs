@@ -14,6 +14,7 @@ namespace TheAdventure
         private PlayerObject _player;
         private GameRenderer _renderer;
         private Input _input;
+        private SpeedPotion _speedPotion;
 
         private DateTimeOffset _lastUpdate = DateTimeOffset.Now;
         private DateTimeOffset _lastPlayerUpdate = DateTimeOffset.Now;
@@ -51,6 +52,10 @@ namespace TheAdventure
 
                 refTileSet.Set = tileSet;
             }
+            
+            SpriteSheet speedPotionPicture = new(_renderer, Path.Combine("Assets", "speed.png"), 0, 0, 32, 32, (0, 0));
+
+            _speedPotion = new SpeedPotion(speedPotionPicture, (100, 100), 50, 3);
 
             _currentLevel = level;
             SpriteSheet spriteSheet = new(_renderer, Path.Combine("Assets", "player.png"), 10, 6, 48, 48, (24, 42));
@@ -61,10 +66,15 @@ namespace TheAdventure
                 DurationMs = 1000,
                 Loop = true
             };
-            _player = new PlayerObject(spriteSheet, 100, 100);
+            _player = new PlayerObject(spriteSheet, 200, 200);
 
             _renderer.SetWorldBounds(new Rectangle<int>(0, 0, _currentLevel.Width * _currentLevel.TileWidth,
                 _currentLevel.Height * _currentLevel.TileHeight));
+        }
+        
+        private void ApplySpeedBoost(SpeedPotion potion)
+        {
+            _player.ApplySpeedBoost(potion.SpeedBoost, potion.Duration);
         }
 
         public void ProcessFrame()
@@ -77,6 +87,11 @@ namespace TheAdventure
             bool down = _input.IsDownPressed();
             bool left = _input.IsLeftPressed();
             bool right = _input.IsRightPressed();
+            
+            if (_speedPotion.IsWithinInteractionArea(_player.Position.X, _player.Position.Y))
+            {
+                ApplySpeedBoost(_speedPotion);
+            }
 
             _player.UpdatePlayerPosition(up ? 1.0 : 0.0, down ? 1.0 : 0.0, left ? 1.0 : 0.0, right ? 1.0 : 0.0,
                 _currentLevel.Width * _currentLevel.TileWidth, _currentLevel.Height * _currentLevel.TileHeight,
@@ -177,6 +192,7 @@ namespace TheAdventure
             }
 
             _player.Render(_renderer);
+            _speedPotion.Render(_renderer);
         }
 
         private void AddBomb(int x, int y)
