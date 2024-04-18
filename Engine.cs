@@ -14,6 +14,10 @@ namespace TheAdventure
         private PlayerObject _player;
         private GameRenderer _renderer;
         private Input _input;
+        private VolumeControl _volumeIncrease;
+        private VolumeControl _volumeDecrease;
+        private MusicPlayer _musicPlayer= new();
+        
 
         private DateTimeOffset _lastUpdate = DateTimeOffset.Now;
         private DateTimeOffset _lastPlayerUpdate = DateTimeOffset.Now;
@@ -51,7 +55,18 @@ namespace TheAdventure
 
                 refTileSet.Set = tileSet;
             }
+            
+            _musicPlayer.PlayMusic("Assets/song.mp3");
+            
+            SpriteSheet volumeUpSheet = new SpriteSheet(_renderer, Path.Combine("Assets","volume_up.png"),0 , 0, 32, 32, (0, 0));
+            SpriteSheet volumeDownSheet = new SpriteSheet(_renderer, Path.Combine("Assets","volume_down.png"), 0, 0, 32, 32, (0, 0));
+            
+            _volumeIncrease = new VolumeControl(volumeUpSheet, (100, 100), VolumeControl.Action.IncreaseVolume);
+            _volumeDecrease = new VolumeControl(volumeDownSheet, (400, 100), VolumeControl.Action.DecreaseVolume);
 
+            // _gameObjects.Add(volumeUpButton.Id, volumeUpButton);
+            // _gameObjects.Add(volumeDownButton.Id, volumeDownButton);
+            
             _currentLevel = level;
             SpriteSheet spriteSheet = new(_renderer, Path.Combine("Assets", "player.png"), 10, 6, 48, 48, (24, 42));
             spriteSheet.Animations["IdleDown"] = new SpriteSheet.Animation()
@@ -98,6 +113,15 @@ namespace TheAdventure
             _renderer.ClearScreen();
             
             _renderer.CameraLookAt(_player.Position.X, _player.Position.Y);
+            
+            if (_volumeDecrease.IsWithinInteractionArea(_player.Position.X, _player.Position.Y))
+            {
+                _volumeDecrease.TriggerAction(_musicPlayer);
+            }
+            if (_volumeIncrease.IsWithinInteractionArea(_player.Position.X, _player.Position.Y))
+            {
+                _volumeIncrease.TriggerAction(_musicPlayer);
+            }
 
             RenderTerrain();
             RenderAllObjects();
@@ -177,6 +201,8 @@ namespace TheAdventure
             }
 
             _player.Render(_renderer);
+            _volumeDecrease.Render(_renderer);
+            _volumeIncrease.Render(_renderer);
         }
 
         private void AddBomb(int x, int y)
